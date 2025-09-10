@@ -40,7 +40,27 @@ The secret key is stored in `application.properties`.
 
 # Database
 
-It uses a ~~H2 in-memory database~~ sqlite database (for easy local test without losing test data after every restart), can be changed easily in the `application.properties` for any other database.
+It uses a ~~H2 in-memory database~~ SQLite database by default (for easy local test without losing test data after every restart). MySQL support has been added and can be configured in the `application.properties` for production use.
+
+## Database Configuration
+
+### SQLite (Default - Local Development)
+The application uses SQLite by default for local development. No additional setup required.
+
+### MySQL (Production)
+To use MySQL, update the `application.properties` file or use the `application-mysql.properties` profile:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/realworld
+spring.datasource.username=root
+spring.datasource.password=password
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+```
+
+Or run with MySQL profile:
+```bash
+./gradlew bootRun --args='--spring.profiles.active=mysql'
+```
 
 # Getting started
 
