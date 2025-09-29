@@ -130,7 +130,7 @@ public class ArticleQueryServiceTest extends DbTestBase {
             null,
             null,
             null,
-            new CursorPageParameter<DateTime>(
+            new CursorPageParameter<Instant>(
                 DateTimeCursor.parse(recentArticles.getEndCursor().toString()), 20, Direction.NEXT),
             user);
     Assertions.assertEquals(nodata.getData().size(), 0);
