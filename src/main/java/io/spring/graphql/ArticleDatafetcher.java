@@ -67,7 +67,7 @@ public class ArticleDatafetcher {
     graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
-            .pageInfo(pageInfo)
+            .pageInfo(convertPageInfo(pageInfo))
             .edges(
                 articles.getData().stream()
                     .map(
@@ -117,7 +117,7 @@ public class ArticleDatafetcher {
     graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
-            .pageInfo(pageInfo)
+            .pageInfo(convertPageInfo(pageInfo))
             .edges(
                 articles.getData().stream()
                     .map(
@@ -171,7 +171,7 @@ public class ArticleDatafetcher {
 
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
-            .pageInfo(pageInfo)
+            .pageInfo(convertPageInfo(pageInfo))
             .edges(
                 articles.getData().stream()
                     .map(
@@ -224,7 +224,7 @@ public class ArticleDatafetcher {
     graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
-            .pageInfo(pageInfo)
+            .pageInfo(convertPageInfo(pageInfo))
             .edges(
                 articles.getData().stream()
                     .map(
@@ -279,7 +279,7 @@ public class ArticleDatafetcher {
     graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
-            .pageInfo(pageInfo)
+            .pageInfo(convertPageInfo(pageInfo))
             .edges(
                 articles.getData().stream()
                     .map(
@@ -366,6 +366,15 @@ public class ArticleDatafetcher {
             : new DefaultConnectionCursor(articles.getEndCursor().toString()),
         articles.hasPrevious(),
         articles.hasNext());
+  }
+
+  private io.spring.graphql.types.PageInfo convertPageInfo(graphql.relay.PageInfo pageInfo) {
+    return io.spring.graphql.types.PageInfo.newBuilder()
+        .startCursor(pageInfo.getStartCursor() != null ? pageInfo.getStartCursor().getValue() : null)
+        .endCursor(pageInfo.getEndCursor() != null ? pageInfo.getEndCursor().getValue() : null)
+        .hasPreviousPage(pageInfo.isHasPreviousPage())
+        .hasNextPage(pageInfo.isHasNextPage())
+        .build();
   }
 
   private Article buildArticleResult(ArticleData articleData) {
