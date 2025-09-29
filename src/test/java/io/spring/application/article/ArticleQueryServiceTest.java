@@ -92,7 +92,7 @@ public class ArticleQueryServiceTest extends DbTestBase {
             "body",
             Arrays.asList("test"),
             user.getId(),
-            Instant.now().minusHours(1));
+            Instant.now().minus(1, java.time.temporal.ChronoUnit.HOURS));
     articleRepository.save(anotherArticle);
 
     ArticleDataList recentArticles =
@@ -116,7 +116,7 @@ public class ArticleQueryServiceTest extends DbTestBase {
             "body",
             Arrays.asList("test"),
             user.getId(),
-            Instant.now().minusHours(1));
+            Instant.now().minus(1, java.time.temporal.ChronoUnit.HOURS));
     articleRepository.save(anotherArticle);
 
     CursorPager<ArticleData> recentArticles =
