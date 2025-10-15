@@ -24,8 +24,8 @@ import io.spring.graphql.types.CommentsConnection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.time.format.DateTimeFormatter;
 import lombok.AllArgsConstructor;
-import org.joda.time.format.ISODateTimeFormat;
 
 @DgsComponent
 @AllArgsConstructor
@@ -115,8 +115,8 @@ public class CommentDatafetcher {
     return Comment.newBuilder()
         .id(comment.getId())
         .body(comment.getBody())
-        .updatedAt(ISODateTimeFormat.dateTime().withZoneUTC().print(comment.getCreatedAt()))
-        .createdAt(ISODateTimeFormat.dateTime().withZoneUTC().print(comment.getCreatedAt()))
+        .updatedAt(DateTimeFormatter.ISO_INSTANT.format(comment.getCreatedAt()))
+        .createdAt(DateTimeFormatter.ISO_INSTANT.format(comment.getCreatedAt()))
         .build();
   }
 }
