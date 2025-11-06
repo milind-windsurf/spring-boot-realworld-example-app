@@ -19,13 +19,13 @@ import io.spring.application.data.ProfileData;
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
 import io.spring.core.user.User;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.joda.time.DateTime;
-import org.joda.time.format.ISODateTimeFormat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,10 +52,14 @@ public class ArticleApiTest extends TestWithCurrentUser {
     RestAssuredMockMvc.mockMvc(mvc);
   }
 
+  /**
+   * Verifies that reading an article by slug returns the correct article data with proper
+   * formatting of timestamps.
+   */
   @Test
   public void should_read_article_success() throws Exception {
     String slug = "test-new-article";
-    DateTime time = new DateTime();
+    Instant time = Instant.now();
     Article article =
         new Article(
             "Test New Article",
@@ -74,15 +78,19 @@ public class ArticleApiTest extends TestWithCurrentUser {
         .statusCode(200)
         .body("article.slug", equalTo(slug))
         .body("article.body", equalTo(articleData.getBody()))
-        .body("article.createdAt", equalTo(ISODateTimeFormat.dateTime().withZoneUTC().print(time)));
+        .body("article.createdAt", equalTo(DateTimeFormatter.ISO_INSTANT.format(time)));
   }
 
+  /** Verifies that requesting a non-existent article returns a 404 status code. */
   @Test
   public void should_404_if_article_not_found() throws Exception {
     when(articleQueryService.findBySlug(anyString(), any())).thenReturn(Optional.empty());
     RestAssuredMockMvc.when().get("/articles/not-exists").then().statusCode(404);
   }
 
+  /**
+   * Verifies that an article author can successfully update article title, body, and description.
+   */
   @Test
   public void should_update_article_content_success() throws Exception {
     List<String> tagList = Arrays.asList("java", "spring", "jpg");
@@ -118,6 +126,9 @@ public class ArticleApiTest extends TestWithCurrentUser {
         .body("article.slug", equalTo(updatedArticleData.getSlug()));
   }
 
+  /**
+   * Verifies that non-authors receive a 403 Forbidden status when attempting to update an article.
+   */
   @Test
   public void should_get_403_if_not_author_to_update_article() throws Exception {
     String title = "new-title";
@@ -131,7 +142,7 @@ public class ArticleApiTest extends TestWithCurrentUser {
         new Article(
             title, description, body, Arrays.asList("java", "spring", "jpg"), anotherUser.getId());
 
-    DateTime time = new DateTime();
+    Instant time = Instant.now();
     ArticleData articleData =
         new ArticleData(
             article.getId(),
@@ -165,6 +176,7 @@ public class ArticleApiTest extends TestWithCurrentUser {
         .statusCode(403);
   }
 
+  /** Verifies that an article author can successfully delete their article. */
   @Test
   public void should_delete_article_success() throws Exception {
     String title = "title";
@@ -185,6 +197,9 @@ public class ArticleApiTest extends TestWithCurrentUser {
     verify(articleRepository).remove(eq(article));
   }
 
+  /**
+   * Verifies that non-authors receive a 403 Forbidden status when attempting to delete an article.
+   */
   @Test
   public void should_403_if_not_author_delete_article() throws Exception {
     String title = "new-title";

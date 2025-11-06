@@ -16,11 +16,11 @@ import io.spring.application.article.ArticleCommandService;
 import io.spring.application.data.ArticleData;
 import io.spring.application.data.ProfileData;
 import io.spring.core.article.Article;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +45,10 @@ public class ArticlesApiTest extends TestWithCurrentUser {
     RestAssuredMockMvc.mockMvc(mvc);
   }
 
+  /**
+   * Verifies that creating a new article with valid parameters returns a successful response with
+   * the correct article data including title, body, author, and favorites count.
+   */
   @Test
   public void should_create_article_success() throws Exception {
     String title = "How to train your dragon";
@@ -63,8 +67,8 @@ public class ArticlesApiTest extends TestWithCurrentUser {
             body,
             false,
             0,
-            new DateTime(),
-            new DateTime(),
+            Instant.now(),
+            Instant.now(),
             tagList,
             new ProfileData("userid", user.getUsername(), user.getBio(), user.getImage(), false));
 
@@ -94,6 +98,10 @@ public class ArticlesApiTest extends TestWithCurrentUser {
     verify(articleCommandService).createArticle(any(), any());
   }
 
+  /**
+   * Verifies that attempting to create an article with an empty body field returns a 422 status
+   * code with an appropriate validation error message.
+   */
   @Test
   public void should_get_error_message_with_wrong_parameter() throws Exception {
     String title = "How to train your dragon";
@@ -114,6 +122,10 @@ public class ArticlesApiTest extends TestWithCurrentUser {
         .body("errors.body[0]", equalTo("can't be empty"));
   }
 
+  /**
+   * Verifies that attempting to create an article with a title that already exists returns a 422
+   * status code indicating a duplicate article title constraint violation.
+   */
   @Test
   public void should_get_error_message_with_duplicated_title() {
     String title = "How to train your dragon";
@@ -132,8 +144,8 @@ public class ArticlesApiTest extends TestWithCurrentUser {
             body,
             false,
             0,
-            new DateTime(),
-            new DateTime(),
+            Instant.now(),
+            Instant.now(),
             asList(tagList),
             new ProfileData("userid", user.getUsername(), user.getBio(), user.getImage(), false));
 

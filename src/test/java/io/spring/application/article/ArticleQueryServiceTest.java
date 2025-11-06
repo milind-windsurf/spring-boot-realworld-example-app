@@ -19,9 +19,10 @@ import io.spring.infrastructure.DbTestBase;
 import io.spring.infrastructure.repository.MyBatisArticleFavoriteRepository;
 import io.spring.infrastructure.repository.MyBatisArticleRepository;
 import io.spring.infrastructure.repository.MyBatisUserRepository;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Optional;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,10 +53,14 @@ public class ArticleQueryServiceTest extends DbTestBase {
     userRepository.save(user);
     article =
         new Article(
-            "test", "desc", "body", Arrays.asList("java", "spring"), user.getId(), new DateTime());
+            "test", "desc", "body", Arrays.asList("java", "spring"), user.getId(), Instant.now());
     articleRepository.save(article);
   }
 
+  /**
+   * Verifies that an article can be successfully fetched by ID with correct default values for
+   * favorites count (0), favorited status (false), and that timestamps and tags are populated.
+   */
   @Test
   public void should_fetch_article_success() {
     Optional<ArticleData> optional = queryService.findById(article.getId(), user);
@@ -69,6 +74,10 @@ public class ArticleQueryServiceTest extends DbTestBase {
     Assertions.assertTrue(fetched.getTagList().contains("java"));
   }
 
+  /**
+   * Verifies that when a user favorites an article, the article data correctly reflects the
+   * favorite status (true) and the favorites count is incremented (1).
+   */
   @Test
   public void should_get_article_with_right_favorite_and_favorite_count() {
     User anotherUser = new User("other@test.com", "other", "123", "", "");
@@ -83,6 +92,10 @@ public class ArticleQueryServiceTest extends DbTestBase {
     Assertions.assertTrue(articleData.isFavorited());
   }
 
+  /**
+   * Verifies that the default article list query returns articles in descending order by creation
+   * time, with correct pagination support (total count and page size).
+   */
   @Test
   public void should_get_default_article_list() {
     Article anotherArticle =
@@ -92,7 +105,7 @@ public class ArticleQueryServiceTest extends DbTestBase {
             "body",
             Arrays.asList("test"),
             user.getId(),
-            new DateTime().minusHours(1));
+            Instant.now().minus(1, ChronoUnit.HOURS));
     articleRepository.save(anotherArticle);
 
     ArticleDataList recentArticles =
@@ -107,6 +120,11 @@ public class ArticleQueryServiceTest extends DbTestBase {
     Assertions.assertEquals(nodata.getArticleDatas().size(), 0);
   }
 
+  /**
+   * Verifies that cursor-based pagination works correctly for article lists, including forward
+   * navigation (NEXT), backward navigation (PREV), and handling of empty result sets when the
+   * cursor points beyond available data.
+   */
   @Test
   public void should_get_default_article_list_by_cursor() {
     Article anotherArticle =
@@ -116,7 +134,7 @@ public class ArticleQueryServiceTest extends DbTestBase {
             "body",
             Arrays.asList("test"),
             user.getId(),
-            new DateTime().minusHours(1));
+            Instant.now().minus(1, ChronoUnit.HOURS));
     articleRepository.save(anotherArticle);
 
     CursorPager<ArticleData> recentArticles =
@@ -130,7 +148,7 @@ public class ArticleQueryServiceTest extends DbTestBase {
             null,
             null,
             null,
-            new CursorPageParameter<DateTime>(
+            new CursorPageParameter<Instant>(
                 DateTimeCursor.parse(recentArticles.getEndCursor().toString()), 20, Direction.NEXT),
             user);
     Assertions.assertEquals(nodata.getData().size(), 0);
@@ -142,6 +160,10 @@ public class ArticleQueryServiceTest extends DbTestBase {
     Assertions.assertEquals(prevArticles.getData().size(), 2);
   }
 
+  /**
+   * Verifies that articles can be filtered by author username, returning only articles written by
+   * the specified author.
+   */
   @Test
   public void should_query_article_by_author() {
     User anotherUser = new User("other@email.com", "other", "123", "", "");
@@ -157,6 +179,10 @@ public class ArticleQueryServiceTest extends DbTestBase {
     Assertions.assertEquals(recentArticles.getCount(), 1);
   }
 
+  /**
+   * Verifies that articles can be filtered by favorited username, returning only articles that the
+   * specified user has favorited, with correct favorite count and favorited status.
+   */
   @Test
   public void should_query_article_by_favorite() {
     User anotherUser = new User("other@email.com", "other", "123", "", "");
@@ -180,6 +206,10 @@ public class ArticleQueryServiceTest extends DbTestBase {
     Assertions.assertTrue(articleData.isFavorited());
   }
 
+  /**
+   * Verifies that articles can be filtered by tag, returning only articles that have the specified
+   * tag, and that queries for non-existent tags return empty results.
+   */
   @Test
   public void should_query_article_by_tag() {
     Article anotherArticle =
@@ -196,6 +226,10 @@ public class ArticleQueryServiceTest extends DbTestBase {
     Assertions.assertEquals(notag.getCount(), 0);
   }
 
+  /**
+   * Verifies that when a user follows an article's author, the article data includes the correct
+   * following status (true) in the author's profile data.
+   */
   @Test
   public void should_show_following_if_user_followed_author() {
     User anotherUser = new User("other@email.com", "other", "123", "", "");
@@ -211,6 +245,10 @@ public class ArticleQueryServiceTest extends DbTestBase {
     Assertions.assertTrue(articleData.getProfileData().isFollowing());
   }
 
+  /**
+   * Verifies that a user's feed contains only articles from authors they follow, with correct
+   * following status, and that users see no articles from authors they don't follow.
+   */
   @Test
   public void should_get_user_feed() {
     User anotherUser = new User("other@email.com", "other", "123", "", "");
