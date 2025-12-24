@@ -13,7 +13,8 @@ public class DefaultJwtServiceTest {
 
   @BeforeEach
   public void setUp() {
-    jwtService = new DefaultJwtService("123123123123123123123123123123123123123123123123123123123123", 3600);
+    String testSecret = "a".repeat(64);
+    jwtService = new DefaultJwtService(testSecret, 3600);
   }
 
   @Test
