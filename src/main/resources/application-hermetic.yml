@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:hermetic
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  jackson:
+    deserialization:
+      UNWRAP_ROOT_VALUE: true
+
+image:
+  default: https://static.productionready.io/images/smiley-cyrus.jpg
+
+jwt:
+  secret: hermetic-secret-key-for-testing-purposes-only
+  sessionTime: 86400
+
+mybatis:
+  configuration:
+    cache-enabled: true
+    default-statement-timeout: 3000
+    map-underscore-to-camel-case: true
+    use-generated-keys: true
+  type-handlers-package: io.spring.infrastructure.mybatis
+  mapper-locations: mapper/*.xml
+
+logging:
+  level:
+    io.spring: DEBUG
+    org.springframework.security: DEBUG
