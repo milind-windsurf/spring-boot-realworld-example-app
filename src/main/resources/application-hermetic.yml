@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:hermetic;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  h2:
+    console:
+      enabled: true
+  flyway:
+    enabled: false
+
+jwt:
+  secret: hermetic-secret-key-for-testing
+  sessionTime: 86400
+
+image:
+  default: https://static.productionready.io/images/smiley-cyrus.jpg
+
+mybatis:
+  configuration:
+    cache-enabled: false
+    default-statement-timeout: 3000
+    map-underscore-to-camel-case: true
+    use-generated-keys: true
+
+logging:
+  level:
+    io.spring: DEBUG
+    org.springframework.security: DEBUG
+    org.flywaydb: OFF
