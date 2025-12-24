@@ -26,11 +26,12 @@ import io.spring.graphql.DgsConstants.QUERY;
 import io.spring.graphql.types.Article;
 import io.spring.graphql.types.ArticleEdge;
 import io.spring.graphql.types.ArticlesConnection;
+import io.spring.graphql.types.PageInfo;
 import io.spring.graphql.types.Profile;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.joda.time.format.ISODateTimeFormat;
 
 @DgsComponent
 @AllArgsConstructor
@@ -64,7 +65,7 @@ public class ArticleDatafetcher {
               current,
               new CursorPageParameter<>(DateTimeCursor.parse(before), last, Direction.PREV));
     }
-    graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
+    PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
             .pageInfo(pageInfo)
@@ -114,7 +115,7 @@ public class ArticleDatafetcher {
               target,
               new CursorPageParameter<>(DateTimeCursor.parse(before), last, Direction.PREV));
     }
-    graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
+    PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
             .pageInfo(pageInfo)
@@ -167,7 +168,7 @@ public class ArticleDatafetcher {
               new CursorPageParameter<>(DateTimeCursor.parse(before), last, Direction.PREV),
               current);
     }
-    graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
+    PageInfo pageInfo = buildArticlePageInfo(articles);
 
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
@@ -221,7 +222,7 @@ public class ArticleDatafetcher {
               new CursorPageParameter<>(DateTimeCursor.parse(before), last, Direction.PREV),
               current);
     }
-    graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
+    PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
             .pageInfo(pageInfo)
@@ -276,7 +277,7 @@ public class ArticleDatafetcher {
               new CursorPageParameter<>(DateTimeCursor.parse(before), last, Direction.PREV),
               current);
     }
-    graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
+    PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
             .pageInfo(pageInfo)
@@ -356,29 +357,42 @@ public class ArticleDatafetcher {
         .build();
   }
 
-  private DefaultPageInfo buildArticlePageInfo(CursorPager<ArticleData> articles) {
-    return new DefaultPageInfo(
-        articles.getStartCursor() == null
-            ? null
-            : new DefaultConnectionCursor(articles.getStartCursor().toString()),
-        articles.getEndCursor() == null
-            ? null
-            : new DefaultConnectionCursor(articles.getEndCursor().toString()),
-        articles.hasPrevious(),
-        articles.hasNext());
+  private PageInfo buildArticlePageInfo(CursorPager<ArticleData> articles) {
+    DefaultPageInfo defaultPageInfo =
+        new DefaultPageInfo(
+            articles.getStartCursor() == null
+                ? null
+                : new DefaultConnectionCursor(articles.getStartCursor().toString()),
+            articles.getEndCursor() == null
+                ? null
+                : new DefaultConnectionCursor(articles.getEndCursor().toString()),
+            articles.hasPrevious(),
+            articles.hasNext());
+    return PageInfo.newBuilder()
+        .startCursor(
+            defaultPageInfo.getStartCursor() != null
+                ? defaultPageInfo.getStartCursor().getValue()
+                : null)
+        .endCursor(
+            defaultPageInfo.getEndCursor() != null
+                ? defaultPageInfo.getEndCursor().getValue()
+                : null)
+        .hasPreviousPage(defaultPageInfo.isHasPreviousPage())
+        .hasNextPage(defaultPageInfo.isHasNextPage())
+        .build();
   }
 
   private Article buildArticleResult(ArticleData articleData) {
     return Article.newBuilder()
         .body(articleData.getBody())
-        .createdAt(ISODateTimeFormat.dateTime().withZoneUTC().print(articleData.getCreatedAt()))
+        .createdAt(DateTimeFormatter.ISO_INSTANT.format(articleData.getCreatedAt()))
         .description(articleData.getDescription())
         .favorited(articleData.isFavorited())
         .favoritesCount(articleData.getFavoritesCount())
         .slug(articleData.getSlug())
         .tagList(articleData.getTagList())
         .title(articleData.getTitle())
-        .updatedAt(ISODateTimeFormat.dateTime().withZoneUTC().print(articleData.getUpdatedAt()))
+        .updatedAt(DateTimeFormatter.ISO_INSTANT.format(articleData.getUpdatedAt()))
         .build();
   }
 }
