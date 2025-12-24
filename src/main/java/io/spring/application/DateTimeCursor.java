@@ -1,23 +1,23 @@
 package io.spring.application;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
-public class DateTimeCursor extends PageCursor<DateTime> {
+public class DateTimeCursor extends PageCursor<LocalDateTime> {
 
-  public DateTimeCursor(DateTime data) {
+  public DateTimeCursor(LocalDateTime data) {
     super(data);
   }
 
   @Override
   public String toString() {
-    return String.valueOf(getData().getMillis());
+    return String.valueOf(getData().toInstant(ZoneOffset.UTC).toEpochMilli());
   }
 
-  public static DateTime parse(String cursor) {
+  public static LocalDateTime parse(String cursor) {
     if (cursor == null) {
       return null;
     }
-    return new DateTime().withMillis(Long.parseLong(cursor)).withZone(DateTimeZone.UTC);
+    return LocalDateTime.ofEpochSecond(Long.parseLong(cursor) / 1000, (int) (Long.parseLong(cursor) % 1000) * 1000000, ZoneOffset.UTC);
   }
 }
