@@ -27,10 +27,10 @@ import io.spring.graphql.types.Article;
 import io.spring.graphql.types.ArticleEdge;
 import io.spring.graphql.types.ArticlesConnection;
 import io.spring.graphql.types.Profile;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.joda.time.format.ISODateTimeFormat;
 
 @DgsComponent
 @AllArgsConstructor
@@ -67,7 +67,7 @@ public class ArticleDatafetcher {
     graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
-            .pageInfo(pageInfo)
+            .pageInfo(convertPageInfo(pageInfo))
             .edges(
                 articles.getData().stream()
                     .map(
@@ -117,7 +117,7 @@ public class ArticleDatafetcher {
     graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
-            .pageInfo(pageInfo)
+            .pageInfo(convertPageInfo(pageInfo))
             .edges(
                 articles.getData().stream()
                     .map(
@@ -171,7 +171,7 @@ public class ArticleDatafetcher {
 
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
-            .pageInfo(pageInfo)
+            .pageInfo(convertPageInfo(pageInfo))
             .edges(
                 articles.getData().stream()
                     .map(
@@ -224,7 +224,7 @@ public class ArticleDatafetcher {
     graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
-            .pageInfo(pageInfo)
+            .pageInfo(convertPageInfo(pageInfo))
             .edges(
                 articles.getData().stream()
                     .map(
@@ -279,7 +279,7 @@ public class ArticleDatafetcher {
     graphql.relay.PageInfo pageInfo = buildArticlePageInfo(articles);
     ArticlesConnection articlesConnection =
         ArticlesConnection.newBuilder()
-            .pageInfo(pageInfo)
+            .pageInfo(convertPageInfo(pageInfo))
             .edges(
                 articles.getData().stream()
                     .map(
@@ -368,17 +368,26 @@ public class ArticleDatafetcher {
         articles.hasNext());
   }
 
+  private io.spring.graphql.types.PageInfo convertPageInfo(graphql.relay.PageInfo pageInfo) {
+    return io.spring.graphql.types.PageInfo.newBuilder()
+        .startCursor(pageInfo.getStartCursor() != null ? pageInfo.getStartCursor().getValue() : null)
+        .endCursor(pageInfo.getEndCursor() != null ? pageInfo.getEndCursor().getValue() : null)
+        .hasPreviousPage(pageInfo.isHasPreviousPage())
+        .hasNextPage(pageInfo.isHasNextPage())
+        .build();
+  }
+
   private Article buildArticleResult(ArticleData articleData) {
     return Article.newBuilder()
         .body(articleData.getBody())
-        .createdAt(ISODateTimeFormat.dateTime().withZoneUTC().print(articleData.getCreatedAt()))
+        .createdAt(DateTimeFormatter.ISO_INSTANT.format(articleData.getCreatedAt()))
         .description(articleData.getDescription())
         .favorited(articleData.isFavorited())
         .favoritesCount(articleData.getFavoritesCount())
         .slug(articleData.getSlug())
         .tagList(articleData.getTagList())
         .title(articleData.getTitle())
-        .updatedAt(ISODateTimeFormat.dateTime().withZoneUTC().print(articleData.getUpdatedAt()))
+        .updatedAt(DateTimeFormatter.ISO_INSTANT.format(articleData.getUpdatedAt()))
         .build();
   }
 }

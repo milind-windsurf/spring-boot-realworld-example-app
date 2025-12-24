@@ -21,11 +21,11 @@ import io.spring.graphql.types.Article;
 import io.spring.graphql.types.Comment;
 import io.spring.graphql.types.CommentEdge;
 import io.spring.graphql.types.CommentsConnection;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.joda.time.format.ISODateTimeFormat;
 
 @DgsComponent
 @AllArgsConstructor
@@ -81,7 +81,7 @@ public class CommentDatafetcher {
     graphql.relay.PageInfo pageInfo = buildCommentPageInfo(comments);
     CommentsConnection result =
         CommentsConnection.newBuilder()
-            .pageInfo(pageInfo)
+            .pageInfo(convertPageInfo(pageInfo))
             .edges(
                 comments.getData().stream()
                     .map(
@@ -111,12 +111,21 @@ public class CommentDatafetcher {
         comments.hasNext());
   }
 
+  private io.spring.graphql.types.PageInfo convertPageInfo(graphql.relay.PageInfo pageInfo) {
+    return io.spring.graphql.types.PageInfo.newBuilder()
+        .startCursor(pageInfo.getStartCursor() != null ? pageInfo.getStartCursor().getValue() : null)
+        .endCursor(pageInfo.getEndCursor() != null ? pageInfo.getEndCursor().getValue() : null)
+        .hasPreviousPage(pageInfo.isHasPreviousPage())
+        .hasNextPage(pageInfo.isHasNextPage())
+        .build();
+  }
+
   private Comment buildCommentResult(CommentData comment) {
     return Comment.newBuilder()
         .id(comment.getId())
         .body(comment.getBody())
-        .updatedAt(ISODateTimeFormat.dateTime().withZoneUTC().print(comment.getCreatedAt()))
-        .createdAt(ISODateTimeFormat.dateTime().withZoneUTC().print(comment.getCreatedAt()))
+        .updatedAt(DateTimeFormatter.ISO_INSTANT.format(comment.getCreatedAt()))
+        .createdAt(DateTimeFormatter.ISO_INSTANT.format(comment.getCreatedAt()))
         .build();
   }
 }
